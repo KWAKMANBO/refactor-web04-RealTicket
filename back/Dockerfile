@@ -1,7 +1,15 @@
-FROM node
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /app
+COPY gradlew settings.gradle.kts build.gradle.kts ./
+COPY gradle gradle
+RUN ./gradlew dependencies --no-daemon > /dev/null
+COPY src src
+RUN ./gradlew bootJar -x test --no-daemon
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+ENV TZ=Asia/Seoul
+ENV SPRING_PROFILES_ACTIVE=prod
+COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
-CMD ["npm", "run", "start"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

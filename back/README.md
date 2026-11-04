@@ -1,99 +1,91 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# RealTicket Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+RealTicket 백엔드입니다. 기존 NestJS 백엔드를 Spring Boot로 다시 작성했습니다.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- Java 21, Spring Boot 3.5 (Spring MVC + 가상 스레드)
+- MySQL + Spring Data JPA + Flyway
+- Redis (Spring Data Redis / Lettuce)
 
-## Description
+## 실행
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+환경 변수는 Nest 버전과 같은 이름을 씁니다.
 
-## Project setup
+| 변수 | 기본값 |
+|---|---|
+| `DATABASE_HOST` / `DATABASE_PORT` / `DATABASE_SCHEMA` | `localhost` / `3306` / `real_ticket` |
+| `DATABASE_USERNAME` / `DATABASE_PASSWORD` | `root` / `root` |
+| `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` | `localhost` / `6379` / (없음) |
+| `FRONT_URL` | `http://localhost:3000` |
+| `PORT` | `8080` |
+| `ADMIN_SIGNUP_ENABLED` | dev: `true`, prod: `false` |
+| `IN_BOOKING_DEFAULT_MAX_SIZE` | dev: `2`, prod: `100` (좌석 선택 화면 최대 인원) |
 
 ```bash
-$ npm install
+./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
-## Compile and run the project
+Docker 이미지는 기본으로 `prod` 프로필로 실행됩니다 (`SPRING_PROFILES_ACTIVE`로 변경 가능).
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker build -t realticket-back .
 ```
 
-## Run tests
+테스트는 Testcontainers로 MySQL과 Redis를 띄우므로 Docker가 필요합니다.
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+./gradlew test
 ```
 
-## Deployment
+API 문서: `http://localhost:8080/api-docs`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 구조
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
+```
+com.realticket
+├── global
+│   ├── auth        세션 인증 (@RequireStatus, @CurrentUser, SessionRepository)
+│   ├── exception   ApiException, Nest 형식 에러 응답
+│   ├── config      CORS, OpenAPI, BCrypt, 스케줄링
+│   └── logging     요청 로그
+└── domain          user / place / program / event / reservation / booking
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 예매(booking) 구조
 
-## Resources
+```
+LOGIN ──입장 요청──▶ ENTERING ──좌석 SSE 연결──▶ SELECTING_SEAT ──예매 확정/SSE 끊김──▶ LOGIN
+           └──────▶ WAITING ──빈자리 생김──▶ ENTERING
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+- Redis 키 구조는 `BookingKeys`, 원자적으로 처리해야 하는 동작은 `src/main/resources/lua/booking/*.lua`에 있습니다.
+- 좌석 SSE: 바뀐 이벤트만 0.5초마다 보내고, 30초마다 전체 상태, 5초마다 heartbeat를 보냅니다. heartbeat 전송이 실패하면 연결이 끊긴 것으로 보고 선점 좌석을 풀어 줍니다.
+- 예매 오픈/마감, 입장 세션 정리는 서버 메모리의 스케줄러로 동작합니다. **서버 한 대**를 전제로 합니다. 여러 대로 늘리려면 스케줄러에 분산 락(ShedLock 등)이 필요하고, 좌석 변경 알림도 Redis Pub/Sub 등으로 서버 간에 공유해야 합니다.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Nest 버전과 달라진 점
 
-## Support
+- **세션 저장 형식**: `user:{sid}`를 JSON 문자열 대신 Redis Hash로 저장합니다. 필드 단위로 원자적으로 갱신하므로 동시 요청 간 덮어쓰기가 없습니다. 만료된 세션을 갱신 과정에서 TTL 없이 다시 만들던 문제도 없습니다.
+- **테이블 이름**: `users`, `places`, `sections`, `programs`, `events`, `reservations`, `reserved_seats` (snake_case 복수형). 스키마는 Flyway(`src/main/resources/db/migration`)로 관리하고, JPA는 `ddl-auto=validate`로 검증만 합니다.
+- **MOCK_MODE 제거**: `/mock/**` API는 옮기지 않습니다.
+- **날짜 형식**: DB에는 한국 시간으로 저장하고, API에서는 UTC ISO-8601(`2024-12-01T06:00:00Z`)로 주고받습니다. Nest 버전과 같은 방식입니다.
+- **경로 변수 숫자 파싱 실패**: Nest는 일부 API에서 406을 돌려줬지만 모두 400으로 통일했습니다. 프런트엔드는 406을 따로 처리하지 않습니다.
+- **에러 처리 정리**: Nest 버전은 컨트롤러의 try/catch 조건 오류(`error instanceof A || B`)로 의도와 다른 상태 코드가 나가거나, 없는 장소 조회가 500이 되는 경우가 있었습니다. 이제 의도한 400/404/409가 나갑니다.
+- **관리자 회원가입 제한**: `POST /user/signup/admin`은 인증 없이 누구나 관리자를 만들 수 있었습니다. 이제 `ADMIN_SIGNUP_ENABLED=true`일 때만 동작하고, 꺼져 있으면 404를 돌려줍니다. dev 프로필은 켜져 있고 prod 프로필은 꺼져 있습니다. 운영에서 관리자가 필요하면 잠시 켜고 계정을 만든 뒤 다시 끕니다.
+- **로그인 실패 시 기존 세션 유지**: Nest 버전은 비밀번호가 틀려도 그 계정의 기존 세션을 먼저 끊었습니다. 이제 로그인에 성공했을 때만 기존 세션을 끊습니다.
+- **로그아웃 시 쿠키 만료**: `SID` 쿠키도 함께 만료시킵니다.
+- **게스트 정리**: soft delete 된 예약까지 함께 지웁니다 (Nest 버전은 외래 키 때문에 실패할 수 있었습니다). `DELETE /user/guest`는 삭제 건수를 돌려줍니다.
+- **예매 동시성**: 인원 확인과 상태 변경 사이에 다른 요청이 끼어들 수 있던 동작을 Lua로 원자적으로 처리합니다. 정원 초과 입장, 설정 인원보다 많은 좌석 선점, 같은 예매 두 번 저장을 테스트로 확인합니다.
+- **예매 버그 수정**:
+  - 오픈 시각 전인 이벤트도 열리던 문제 (`validateOpeningEvent` 반환값 무시)
+  - 한 이벤트를 마감하면 다른 이벤트의 입장 대기자까지 지워지던 문제 (`entering:*` 삭제)
+  - 마감 후에도 좌석/대기열 브로드캐스트 interval이 계속 돌던 문제
+  - `NODE_ENV` 조건이 항상 참이라 개발 환경 설정값이 쓰이지 않던 문제 → 프로필별 설정으로 분리
+  - 서버 재시작 후 이미 열린 이벤트의 SSE 구독이 실패하던 문제 (구독 채널을 필요할 때 만듦)
+  - 예매 확정 후 좌석을 더 선점하고 나가면 그 좌석이 풀리지 않던 문제 (확정 후 좌석 변경 차단)
+  - 좌석 SSE에 다시 연결하면 기존 선점 정보가 초기화되던 문제
+- **대기열 공정성**: 대기자가 있으면 새로 온 사용자는 빈자리가 있어도 대기열 뒤로 갑니다. 대기 중 다시 요청해도 번호가 바뀌지 않습니다.
+- **Redis `KEYS` 미사용**: 모든 키를 이벤트 단위로 나눠 마감 시 정확한 키만 지웁니다.
+- **`GET /event/:id`의 `name`**: Nest 버전은 비어 있었지만, 이제 프로그램 이름을 내려줍니다 (프런트엔드가 화면에 표시하는 값).
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 전환 이력
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+NestJS → Spring Boot 전환 시 API 경로와 응답 형식은 프런트엔드가 그대로 동작하도록 유지했습니다. 바뀐 동작과 함께 고친 문제는 위의 "Nest 버전과 달라진 점"에 정리되어 있습니다.

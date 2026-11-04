@@ -33,6 +33,19 @@
 
 ---
 
+## 🧰 기술 스택
+
+| 영역 | 사용 기술 |
+|---|---|
+| Frontend | React, TypeScript, Vite, TanStack Query, Tailwind CSS |
+| Backend | Java 21, Spring Boot 3.5 (Spring MVC + 가상 스레드), Spring Data JPA, Flyway |
+| Data | MySQL 8, Redis 7 (Lua 스크립트로 좌석·대기열 원자적 처리) |
+| Realtime | Server-Sent Events (`SseEmitter`) |
+
+> 백엔드는 처음에 NestJS로 개발했고, 이후 Spring Boot로 다시 작성했습니다. 아래 문제 해결 과정은 NestJS 시절의 기록이며, 같은 설계를 Java로 옮기면서 바뀐 점과 고친 문제는 [`back/README.md`](./back/README.md)에 정리되어 있습니다.
+
+---
+
 ## **🛠️ 문제 해결 과정**
 
 ### Server Sent Event를 통한 서버 리소스 절약

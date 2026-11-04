@@ -1,1 +1,0 @@
-export const SEATS_BROADCAST_INTERVAL = 500;

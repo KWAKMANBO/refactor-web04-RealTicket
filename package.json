@@ -13,10 +13,6 @@
     "front/**/*.{ts,tsx}": [
       "npm --prefix front run lint",
       "npm --prefix front run prettier"
-    ],
-    "back/**/*.ts": [
-      "npm --prefix back run lint",
-      "npm --prefix back run prettier"
     ]
   },
   "keywords": [],
