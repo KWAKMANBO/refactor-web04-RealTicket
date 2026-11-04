@@ -15,6 +15,12 @@ import com.realticket.domain.place.repository.PlaceRepository;
 import com.realticket.domain.place.repository.SectionRepository;
 import com.realticket.domain.program.entity.Program;
 import com.realticket.domain.program.repository.ProgramRepository;
+import com.realticket.domain.reservation.entity.Reservation;
+import com.realticket.domain.reservation.entity.ReservedSeat;
+import com.realticket.domain.reservation.repository.ReservationRepository;
+import com.realticket.domain.user.entity.User;
+import com.realticket.domain.user.entity.UserRole;
+import com.realticket.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +33,8 @@ public class TestFixtures {
     private final SectionRepository sectionRepository;
     private final ProgramRepository programRepository;
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+    private final ReservationRepository reservationRepository;
 
     /** 구역 이름마다 2x2 좌석(마지막 칸은 빈 칸)을 가진 장소 */
     @Transactional
@@ -73,5 +81,34 @@ public class TestFixtures {
                 .reservationCloseDate(closeDate)
                 .runningDate(runningDate)
                 .build());
+    }
+
+    public User member(String loginId) {
+        return userRepository.save(User.member(loginId, "{noop}unused", UserRole.USER));
+    }
+
+    public User guest(String loginId) {
+        return userRepository.save(User.guest(loginId));
+    }
+
+    /** 1행 1열부터 seatCount 개 좌석을 예약한다. */
+    public Reservation reservation(User user, Event event, int seatCount) {
+        Reservation reservation = Reservation.builder()
+                .user(user)
+                .event(event)
+                .program(event.getProgram())
+                .createdAt(LocalDateTime.now())
+                .build();
+        for (int i = 0; i < seatCount; i++) {
+            reservation.addReservedSeat(ReservedSeat.builder()
+                    .event(event)
+                    .sectionName("A")
+                    .sectionIndex(0)
+                    .colLen(2)
+                    .row(i / 2 + 1)
+                    .col(i % 2 + 1)
+                    .build());
+        }
+        return reservationRepository.save(reservation);
     }
 }

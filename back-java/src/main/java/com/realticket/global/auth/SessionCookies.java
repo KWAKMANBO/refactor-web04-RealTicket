@@ -24,4 +24,12 @@ public final class SessionCookies {
                 .path("/")
                 .build();
     }
+
+    public static ResponseCookie expire() {
+        return ResponseCookie.from(NAME, "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+    }
 }
