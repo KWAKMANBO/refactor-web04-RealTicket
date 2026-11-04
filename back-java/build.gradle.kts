@@ -53,6 +53,8 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // Docker Engine 29+ 는 API 1.40 미만을 거부한다. Testcontainers 1.21.x 기본값(1.32)을 올려 준다.
+    systemProperty("api.version", "1.44")
 }
 
 // bootJar만 생성 (Docker 이미지에서 jar 하나만 복사하기 위함)
