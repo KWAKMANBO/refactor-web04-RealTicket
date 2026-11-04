@@ -47,11 +47,15 @@ com.realticket
 - **세션 저장 형식**: `user:{sid}`를 JSON 문자열 대신 Redis Hash로 저장합니다. 필드 단위로 원자적으로 갱신하므로 동시 요청 간 덮어쓰기가 없습니다. 만료된 세션을 갱신 과정에서 TTL 없이 다시 만들던 문제도 없습니다.
 - **테이블 이름**: `users`, `places`, `sections`, `programs`, `events`, `reservations`, `reserved_seats` (snake_case 복수형). 스키마는 Flyway(`src/main/resources/db/migration`)로 관리하고, JPA는 `ddl-auto=validate`로 검증만 합니다.
 - **MOCK_MODE 제거**: `/mock/**` API는 옮기지 않습니다.
+- **날짜 형식**: DB에는 한국 시간으로 저장하고, API에서는 UTC ISO-8601(`2024-12-01T06:00:00Z`)로 주고받습니다. Nest 버전과 같은 방식입니다.
+- **경로 변수 숫자 파싱 실패**: Nest는 일부 API에서 406을 돌려줬지만 모두 400으로 통일했습니다. 프런트엔드는 406을 따로 처리하지 않습니다.
+- **에러 처리 정리**: Nest 버전은 컨트롤러의 try/catch 조건 오류(`error instanceof A || B`)로 의도와 다른 상태 코드가 나가거나, 없는 장소 조회가 500이 되는 경우가 있었습니다. 이제 의도한 400/404/409가 나갑니다.
+- **`GET /event/:id`의 `name`**: Nest 버전은 비어 있었지만, 이제 프로그램 이름을 내려줍니다 (프런트엔드가 화면에 표시하는 값).
 
 ## 전환 진행 상황
 
 - [x] 뼈대: 빌드, 설정, 세션 인증, 에러 응답 형식, 엔티티, Flyway, 테스트 기반
-- [ ] place / program / event
+- [x] place / program / event
 - [ ] user (회원가입, 로그인, 게스트, 로그아웃)
 - [ ] reservation
 - [ ] booking (대기열, 입장, 좌석 선점, SSE, 예매 오픈/마감 스케줄)

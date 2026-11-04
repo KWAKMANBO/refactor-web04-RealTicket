@@ -61,7 +61,8 @@ public class Place {
         this.overviewPoints = overviewPoints;
     }
 
-    public void addSectionId(Long sectionId) {
-        this.sectionIds.add(sectionId);
+    /** 구역 순서를 새로 지정한다. */
+    public void replaceSectionIds(List<Long> sectionIds) {
+        this.sectionIds = new ArrayList<>(sectionIds);
     }
 }
