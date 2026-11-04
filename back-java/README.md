@@ -17,6 +17,7 @@ NestJS 백엔드(`../back`)를 Spring Boot로 옮기는 중인 새 백엔드입�
 | `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` | `localhost` / `6379` / (없음) |
 | `FRONT_URL` | `http://localhost:3000` |
 | `PORT` | `8080` |
+| `ADMIN_SIGNUP_ENABLED` | dev: `true`, prod: `false` |
 
 ```bash
 ./gradlew bootRun --args='--spring.profiles.active=dev'
@@ -50,6 +51,7 @@ com.realticket
 - **날짜 형식**: DB에는 한국 시간으로 저장하고, API에서는 UTC ISO-8601(`2024-12-01T06:00:00Z`)로 주고받습니다. Nest 버전과 같은 방식입니다.
 - **경로 변수 숫자 파싱 실패**: Nest는 일부 API에서 406을 돌려줬지만 모두 400으로 통일했습니다. 프런트엔드는 406을 따로 처리하지 않습니다.
 - **에러 처리 정리**: Nest 버전은 컨트롤러의 try/catch 조건 오류(`error instanceof A || B`)로 의도와 다른 상태 코드가 나가거나, 없는 장소 조회가 500이 되는 경우가 있었습니다. 이제 의도한 400/404/409가 나갑니다.
+- **관리자 회원가입 제한**: `POST /user/signup/admin`은 인증 없이 누구나 관리자를 만들 수 있었습니다. 이제 `ADMIN_SIGNUP_ENABLED=true`일 때만 동작하고, 꺼져 있으면 404를 돌려줍니다. dev 프로필은 켜져 있고 prod 프로필은 꺼져 있습니다. 운영에서 관리자가 필요하면 잠시 켜고 계정을 만든 뒤 다시 끕니다.
 - **로그인 실패 시 기존 세션 유지**: Nest 버전은 비밀번호가 틀려도 그 계정의 기존 세션을 먼저 끊었습니다. 이제 로그인에 성공했을 때만 기존 세션을 끊습니다.
 - **로그아웃 시 쿠키 만료**: `SID` 쿠키도 함께 만료시킵니다.
 - **게스트 정리**: soft delete 된 예약까지 함께 지웁니다 (Nest 버전은 외래 키 때문에 실패할 수 있었습니다). `DELETE /user/guest`는 삭제 건수를 돌려줍니다.

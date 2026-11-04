@@ -25,6 +25,8 @@ import com.realticket.global.auth.RequireStatus;
 import com.realticket.global.auth.SessionCookies;
 import com.realticket.global.auth.SessionUser;
 import com.realticket.global.auth.UserStatus;
+import com.realticket.global.config.AppProperties;
+import com.realticket.global.exception.ApiException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final AppProperties appProperties;
 
     @Operation(summary = "회원가입")
     @PostMapping("/signup")
@@ -47,10 +50,15 @@ public class UserController {
         return new MessageResponse("회원가입이 성공적으로 완료되었습니다.");
     }
 
-    @Operation(summary = "관리자 회원가입")
+    @Operation(summary = "관리자 회원가입",
+            description = "app.admin-signup-enabled=true 일 때만 동작한다 (dev 기본값 true, prod 기본값 false).")
     @PostMapping("/signup/admin")
     @ResponseStatus(HttpStatus.CREATED)
     public MessageResponse signupAdmin(@Valid @RequestBody UserCredentialsRequest request) {
+        if (!appProperties.adminSignupEnabled()) {
+            // 비활성화 상태에서는 API 가 없는 것처럼 응답한다
+            throw ApiException.notFound("Cannot POST /user/signup/admin");
+        }
         userService.register(request, UserRole.ADMIN);
         return new MessageResponse("관리자 회원가입이 성공적으로 완료되었습니다.");
     }

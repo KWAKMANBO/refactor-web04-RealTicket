@@ -1,3 +1,6 @@
+app:
+  admin-signup-enabled: ${ADMIN_SIGNUP_ENABLED:true}
+
 logging:
   level:
     com.realticket: DEBUG

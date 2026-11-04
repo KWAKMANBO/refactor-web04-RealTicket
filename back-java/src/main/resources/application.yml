@@ -48,5 +48,7 @@ management:
 
 app:
   front-url: ${FRONT_URL:http://localhost:3000}
+  # 관리자 회원가입 API 허용 여부. 운영에서는 false 로 두고, 필요할 때만 환경 변수로 잠시 켠다.
+  admin-signup-enabled: ${ADMIN_SIGNUP_ENABLED:false}
   session:
     ttl: 1h
