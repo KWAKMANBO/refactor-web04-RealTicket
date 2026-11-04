@@ -23,7 +23,7 @@ import jakarta.servlet.http.Cookie;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, TestFixtures.class})
+@Import({TestcontainersConfiguration.class, TestFixtures.class, BookingTestHelper.class})
 public abstract class IntegrationTest {
 
     private static final String[] TABLES = {
@@ -40,6 +40,9 @@ public abstract class IntegrationTest {
 
     @Autowired
     protected TestFixtures fixtures;
+
+    @Autowired
+    protected BookingTestHelper booking;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

@@ -1,5 +1,10 @@
 app:
   admin-signup-enabled: ${ADMIN_SIGNUP_ENABLED:true}
+  # Nest 코드 주석에 적혀 있던 개발 환경 값 (대기열을 쉽게 확인할 수 있도록 작게 잡음)
+  booking:
+    in-booking-default-max-size: ${IN_BOOKING_DEFAULT_MAX_SIZE:2}
+    entering-session-expiry: 30s
+    entering-gc-interval: 10s
 
 logging:
   level:

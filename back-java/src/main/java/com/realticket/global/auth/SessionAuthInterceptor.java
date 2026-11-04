@@ -10,6 +10,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.realticket.global.exception.ApiException;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,11 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!(handler instanceof HandlerMethod handlerMethod)) {
+            return true;
+        }
+        // SSE 연결이 끝날 때의 비동기 재진입은 이미 검사를 통과한 요청이다.
+        // (그 사이 세션 상태가 바뀌었을 수 있으므로 다시 검사하지 않는다)
+        if (request.getDispatcherType() == DispatcherType.ASYNC) {
             return true;
         }
         RequireStatus requireStatus = findAnnotation(handlerMethod);

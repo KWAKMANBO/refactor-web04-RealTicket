@@ -58,6 +58,8 @@ tasks.withType<Test> {
     useJUnitPlatform()
     // Docker Engine 29+ 는 API 1.40 미만을 거부한다. Testcontainers 1.21.x 기본값(1.32)을 올려 준다.
     systemProperty("api.version", "1.44")
+    // 운영과 같은 기본 시간대 (RealTicketApplication.main 에서 설정하는 값과 동일)
+    systemProperty("user.timezone", "Asia/Seoul")
 }
 
 // bootJar만 생성 (Docker 이미지에서 jar 하나만 복사하기 위함)

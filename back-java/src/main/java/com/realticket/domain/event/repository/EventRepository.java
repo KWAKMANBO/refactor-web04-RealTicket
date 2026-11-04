@@ -24,4 +24,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findOpenEventsByProgramId(@Param("programId") Long programId, @Param("now") LocalDateTime now);
 
     boolean existsByProgramId(Long programId);
+
+    /** 예약 마감 전인 이벤트 (예매 오픈/마감 예약 대상) */
+    @Query("select e from Event e join fetch e.place where e.reservationCloseDate > :now order by e.reservationOpenDate")
+    List<Event> findUpcoming(@Param("now") LocalDateTime now);
 }

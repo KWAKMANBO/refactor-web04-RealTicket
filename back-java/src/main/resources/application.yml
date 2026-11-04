@@ -52,3 +52,14 @@ app:
   admin-signup-enabled: ${ADMIN_SIGNUP_ENABLED:false}
   session:
     ttl: 1h
+  booking:
+    in-booking-default-max-size: ${IN_BOOKING_DEFAULT_MAX_SIZE:100}
+    entering-session-expiry: 2m
+    entering-gc-interval: 1m
+    seats-broadcast-interval: 500ms
+    sse-maximum-interval: 30s
+    sse-heartbeat-interval: 5s
+    seats-sse-retry: 5s
+    waiting-broadcast-interval: 3s
+    waiting-throughput-rate: 1000
+    max-booking-amount: 4
