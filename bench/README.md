@@ -80,13 +80,15 @@ python3 summarize.py results/<측정 시각>
 
 ### 3. DB가 읽는 행 수 확인 (비교 1 보충)
 
-`sql/layout-explain.sql`의 `@place_id`를 `results/<시각>/seed.json`의 `placeId`로 바꾸고 실행합니다.
-
 ```bash
-docker compose exec -T mysql mysql -uroot -proot real_ticket < sql/layout-explain.sql
+./explain.sh
 ```
 
-`EXPLAIN ANALYZE` 결과에서 두 쿼리가 실제로 읽은 행 수(`rows=`)와 테이블 크기를 비교할 수 있습니다.
+가장 최근 측정의 공연장으로 `sql/layout-explain.sql`을 실행합니다. 측정 데이터가 없으면(`docker compose down -v` 후 등) 새로 만들어 실행합니다. 다른 공연장을 보려면 `PLACE_ID=3 ./explain.sh`처럼 지정합니다.
+
+- **읽은 행 수**: 각 실행 계획 맨 윗줄의 `actual ... rows=` 값입니다. 반정규화는 구역 수(10행), 좌석 1개 = 1행은 좌석 수(3,000행)만큼 읽고 JOIN·정렬까지 합니다.
+- **인덱스 사용**: `Index lookup ... using uk_bench_seats_section_seat`가 보이면 비교 구조도 인덱스를 제대로 쓰고 있다는 뜻입니다.
+- **저장 공간**: 테이블 전체 크기라서 여러 번 측정했다면 그만큼 커집니다. 두 테이블의 비율로 보세요. `TABLE_ROWS`는 MySQL의 추정값입니다.
 
 ### 4. 정리
 
@@ -150,6 +152,7 @@ bench/
 │   ├── layout.js             비교 1
 │   ├── race.js               비교 2-1
 │   └── throughput.js         비교 2-2
+├── explain.sh                비교 1 보충: DB가 읽은 행 수 확인
 ├── sql/layout-explain.sql    비교 1의 DB 실행 계획
 └── results/                  측정 결과 (실행 시 생성)
 
