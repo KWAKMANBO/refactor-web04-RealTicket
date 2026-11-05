@@ -63,3 +63,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 #docker
 docker-compose.yml
+# 측정용 compose 는 로컬 전용 기본값(root/root)만 쓰므로 저장소에 포함한다
+!bench/docker-compose.yml
