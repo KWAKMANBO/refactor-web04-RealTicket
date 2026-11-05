@@ -14,6 +14,7 @@ const SEATS_PER_SECTION = Number(__ENV.SEATS_PER_SECTION || 300);
 
 const successes = new Counter('reserve_success');
 const conflicts = new Counter('reserve_conflict');
+const errors = new Counter('reserve_error'); // 200(성공), 409(이미 예약) 이외의 응답
 
 export const options = {
   scenarios: {
@@ -45,6 +46,7 @@ export default function () {
   const res = http.post(`${BASE_URL}/bench/seat/${STRATEGY}/reserve`, body, params);
   if (res.status === 200) successes.add(1);
   else if (res.status === 409) conflicts.add(1);
+  else errors.add(1);
 }
 
 export function teardown() {

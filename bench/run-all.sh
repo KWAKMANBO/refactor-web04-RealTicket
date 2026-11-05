@@ -63,6 +63,7 @@ for STRATEGY in db-lock db-conditional redis-lua; do
   k6 run --quiet -e BASE_URL="${BASE_URL}" -e EVENT_ID="${EVENT_ID}" -e STRATEGY="${STRATEGY}" -e VUS="${VUS}" \
     -e DURATION="${DURATION}" -e TOTAL_SEATS="${TOTAL_SEATS}" -e SEATS_PER_SECTION="${SEATS_PER_SECTION}" \
     --summary-export "${OUT}/throughput-${STRATEGY}.json" k6/throughput.js 2>&1 | tee "${OUT}/throughput-${STRATEGY}.txt"
+  curl -s "${BASE_URL}/bench/seat/report" > "${OUT}/throughput-${STRATEGY}-report.json"
 done
 
 echo "▶ 요약"

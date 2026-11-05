@@ -49,6 +49,28 @@ curl http://localhost:8080/bench/info
 SECTIONS=20 SEATS_PER_SECTION=500 VUS=100 DURATION=60s ./run-all.sh
 ```
 
+`summary.md` 맨 아래 **검증** 항목에서 측정이 유효했는지 확인할 수 있습니다. 오류가 있었거나 안전한 방식에서 중복 예매가 나오면 ✗로 표시되며, 그 회차는 쓰지 마세요.
+
+### 2-1. 여러 번 측정해 중앙값 내기 (권장)
+
+한 번의 측정은 우연한 요인(백그라운드 프로그램, GC 등)에 흔들릴 수 있습니다. 같은 조건으로 3회 이상 실행한 뒤 종합합니다.
+
+```bash
+for i in 1 2 3; do ./run-all.sh; sleep 30; done
+```
+
+```bash
+python3 aggregate.py
+```
+
+`results/` 아래 모든 회차를 모아 **중앙값 (최소~최대)** 표와 포트폴리오용 배율(예: "처리량 4.8배")을 만들어 줍니다. 검증에 실패한 회차는 자동으로 제외합니다. 특정 회차만 모으려면 폴더를 지정합니다 (`python3 aggregate.py results/A results/B`).
+
+이미 측정한 결과의 표를 새 형식으로 다시 만들려면 다음처럼 실행합니다.
+
+```bash
+python3 summarize.py results/<측정 시각>
+```
+
 | 변수 | 기본값 | 의미 |
 |---|---|---|
 | `SECTIONS`, `SEATS_PER_SECTION`, `COL_LEN` | 10, 300, 20 | 공연장 크기 |
@@ -122,7 +144,8 @@ docker compose down -v
 bench/
 ├── docker-compose.yml        MySQL, Redis, 백엔드(bench 프로필) + 자원 제한
 ├── run-all.sh                전체 측정 실행
-├── summarize.py              k6 결과 + 서버 집계 → Markdown 표
+├── summarize.py              회차 하나의 결과 표 + 검증
+├── aggregate.py              여러 회차의 중앙값 (최소~최대) + 배율
 ├── k6/
 │   ├── layout.js             비교 1
 │   ├── race.js               비교 2-1
