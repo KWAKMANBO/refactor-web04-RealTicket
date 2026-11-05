@@ -1,0 +1,24 @@
+# 성능 측정 전용 프로필. 운영에는 쓰지 않는다.
+#   - 측정용 테이블(db/bench)을 추가로 만든다
+#   - /bench/** API 를 연다 (인증 없음)
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/bench
+  datasource:
+    # 측정 데이터 대량 입력(batch insert)을 빠르게 하기 위해 rewriteBatchedStatements 를 켠다
+    url: jdbc:mysql://${DATABASE_HOST:localhost}:${DATABASE_PORT:3306}/${DATABASE_SCHEMA:real_ticket}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
+    hikari:
+      # DB 커넥션 풀 크기. DB 락 방식 비교 시 결과에 큰 영향을 주므로 측정 결과와 함께 기록한다.
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+
+app:
+  admin-signup-enabled: true
+  booking:
+    # 부하 테스트 사용자가 대기열에 막히지 않도록 크게 잡는다
+    in-booking-default-max-size: 100000
+
+logging:
+  level:
+    com.realticket: INFO
+    # 요청마다 남는 로그가 측정을 방해하지 않도록 끈다
+    com.realticket.global.logging.RequestLoggingFilter: WARN
