@@ -33,13 +33,13 @@
 
 | 단계 | 내용 | 커밋 |
 |---|---|---|
-| 1. 뼈대 | Gradle, 공통 설정, 세션 인증, Nest 형식 에러 응답, 엔티티 7개, Flyway, Testcontainers | `9a9105c`, `81b1ec6` |
-| 2. 조회 도메인 | place, program, event API 11개 | `a937363` |
-| 3. 사용자 | 회원가입·로그인·게스트·로그아웃, 게스트 정리 스케줄러 | `4c56625` |
-| 4. 보안 | 관리자 회원가입 설정 토글 | `800d24c` |
-| 5. 예매 핵심 | booking(대기열·입장·좌석·SSE·오픈/마감), reservation | `efa2f26` |
+| 1. 뼈대 | Gradle, 공통 설정, 세션 인증, Nest 형식 에러 응답, 엔티티 7개, Flyway, Testcontainers | `674eb88`, `2e4dfff` |
+| 2. 조회 도메인 | place, program, event API 11개 | `3286b93` |
+| 3. 사용자 | 회원가입·로그인·게스트·로그아웃, 게스트 정리 스케줄러 | `f07fb83` |
+| 4. 보안 | 관리자 회원가입 설정 토글 | `a6b412a` |
+| 5. 예매 핵심 | booking(대기열·입장·좌석·SSE·오픈/마감), reservation | `c9f8cea` |
 | 6. 프런트 연동 검증 | 실제 프런트엔드 + Playwright로 예매 전 과정 확인 | (테스트 단계) |
-| 7. 교체 | Nest 삭제, `back-java/` → `back/`, Docker prod 프로필, CI에 백엔드 테스트 추가 | `373fb9a` |
+| 7. 교체 | Nest 삭제, `back-java/` → `back/`, Docker prod 프로필, CI에 백엔드 테스트 추가 | `ec83576` |
 
 브랜치: `refactor/backend-java-migration`
 
