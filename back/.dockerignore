@@ -1,0 +1,6 @@
+# Docker 빌드에 필요 없는 로컬 산출물 (빌드 속도 개선)
+build/
+.gradle/
+logs/
+*.iml
+.idea/

@@ -2,7 +2,6 @@
 사용법: python3 summarize.py results/20261105-120000
 """
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -45,17 +44,19 @@ for t, label in [("denormalized", "반정규화 (구역별 배열)"), ("normaliz
         p50, p95, p99 = trend(d, "http_req_duration{name:layout}")
         print(f"| {label} | {fmt(rate(d, 'http_reqs{name:layout}'), 1)} | {fmt(p50)} | {fmt(p95)} | {fmt(p99)} |")
 
+params = load("params.json") or {}
 print("\n## [비교 2-1] 같은 좌석 동시 선점\n")
-print("| 방식 | 경쟁 횟수 | 성공 | 중복 예매 |")
-print("|---|---|---|---|")
+print(f"좌석 {params.get('rounds', '?')}개를 각각 동시 {params.get('raceVus', '?')}명이 노림. "
+      f"정상이라면 성공 {params.get('rounds', '?')}건, 중복 예매 0건.\n")
+print("| 방식 | 성공 | 중복 예매 |")
+print("|---|---|---|")
 for s in ["db-naive", "db-lock", "db-conditional", "redis-naive", "redis-lua"]:
-    txt = out / f"race-{s}.txt"
-    if txt.exists():
-        m = re.search(r"좌석 (\d+)개 × 동시 (\d+)명 → 성공 (\d+)건, 중복 예매 (\d+)건", txt.read_text())
-        if m:
-            print(f"| {s} | {m[1]}회 (각 {m[2]}명) | {m[3]} | {m[4]} |")
+    report = load(f"race-{s}-report.json")
+    if report and s in report:
+        print(f"| {s} | {report[s]['successes']} | {report[s]['doubleBookings']} |")
 
 print("\n## [비교 2-2] 좌석 선점 처리량\n")
+print("무작위 좌석을 잡고, 성공하면 바로 놓는 사이클을 반복한 기준. 응답 시간은 선점 요청만 집계.\n")
 print("| 방식 | 선점 처리량 (req/s) | p50 (ms) | p95 (ms) | p99 (ms) | 오류 |")
 print("|---|---|---|---|---|---|")
 for s in ["db-lock", "db-conditional", "redis-lua"]:

@@ -11,8 +11,15 @@
 ## 준비물
 
 - Docker
-- [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) (`brew install k6`, Windows는 `winget install k6`)
+- [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) (`brew install k6`, Windows는 `winget install k6`). v0.57, v2.3에서 동작을 확인했습니다.
 - Python 3 (결과 요약 표 생성)
+- Windows라면 Git Bash나 WSL (`run-all.sh` 실행용)
+
+**포트 확인**: 3306(MySQL), 6379(Redis), 8080(백엔드)을 다른 프로그램이 쓰고 있으면 실행에 실패합니다. 앞서 로컬 확인용으로 띄운 컨테이너나 서버가 남아 있다면 먼저 정리하세요.
+
+```bash
+docker rm -f rt-mysql rt-redis
+```
 
 ## 측정 순서
 
@@ -101,6 +108,10 @@ docker compose down -v
 - **같은 조건에서 3회 이상 반복**하고 중앙값을 쓰세요. 첫 실행은 JIT 컴파일 등으로 느릴 수 있습니다 (비교 1은 시작 전에 워밍업 요청을 보냅니다).
 - **평균보다 p95/p99**를 쓰세요. 사용자가 체감하는 느린 구간은 평균에 묻힙니다.
 - **측정 중에는 다른 무거운 프로그램을 끄세요.** 노트북이라면 전원을 연결하세요.
+- **k6도 같은 PC의 CPU를 씁니다.** 컨테이너 제한 합계가 CPU 5개(app 2, MySQL 2, Redis 1)이므로, 8코어 이상 PC가 좋습니다. 코어가 적다면 `docker-compose.yml`의 `cpus` 값을 함께 줄이고, 그 값을 결과에 적으세요.
+- **절대값보다 상대 비교가 핵심입니다.** Mac·Windows의 Docker Desktop은 네트워크 계층이 한 번 더 있어 응답 시간이 리눅스 서버보다 길게 나옵니다. 모든 방식에 똑같이 적용되므로 비교에는 문제가 없지만, "운영 성능이 몇 ms"라고 쓰지는 마세요.
+- **처리량(비교 2-2)은 "잡고 바로 놓기" 사이클 기준입니다.** 좌석이 모두 차면 이후 요청이 전부 실패만 하게 되므로, 성공하면 바로 놓아 좌석을 순환시킵니다. 응답 시간은 선점 요청만 따로 집계합니다.
+- **반복 측정 시 조건 맞추기**: 실행할 때마다 새 공연장을 만들어 쓰므로 그대로 여러 번 돌려도 됩니다. 매번 완전히 같은 상태에서 시작하고 싶다면 `docker compose down -v` 후 다시 띄우세요.
 - **DB 커넥션 풀 크기는 DB 방식 결과에 큰 영향을 줍니다.** 값을 바꿔 측정했다면 함께 적으세요.
 - **측정 범위**: `/bench/seat/*`는 "좌석 확인 + 예약"만 비교하기 위해 로그인 세션·인원 수 확인을 뺐습니다. 운영 API(`POST /booking`)는 여기에 세션 조회가 더해집니다.
 - **역사 순서**: 좌석 1개 = 1행 구조와 단순 처리 방식은 비교를 위해 **재현한 것**입니다. 포트폴리오에는 "이전 구조를 재현해 같은 조건에서 비교했다"고 밝히세요.
@@ -111,7 +122,7 @@ docker compose down -v
 bench/
 ├── docker-compose.yml        MySQL, Redis, 백엔드(bench 프로필) + 자원 제한
 ├── run-all.sh                전체 측정 실행
-├── summarize.py              k6 결과 → Markdown 표
+├── summarize.py              k6 결과 + 서버 집계 → Markdown 표
 ├── k6/
 │   ├── layout.js             비교 1
 │   ├── race.js               비교 2-1
